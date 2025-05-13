@@ -35,24 +35,24 @@
     "access": "public"
   },
   "dependencies": {
+    "@apollo/server": "^4.10.5",
     "@modelcontextprotocol/sdk": "^1.10.2",
-    "@types/node": "^22.15.3",
-    "@types/sanitize-html": "^2.15.0",
-    "@types/validator": "13.15.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0",
+    "express": "^4.19.2",
+    "graphql": "^16.9.0",
+    "graphql-tag": "^2.12.6",
     "ignore": "^7.0.4",
+    "morgan": "^1.10.0",
     "openai": "^4.96.2",
     "partial-json": "^0.1.7",
-    "sanitize-html": "^2.16.0",
-    "tiktoken": "^1.0.21",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.8.3",
-    "validator": "13.15.0",
-    "winston": "^3.17.0",
-    "winston-daily-rotate-file": "^5.0.0",
-    "yargs": "^17.7.2",
-    "zod": "^3.24.3"
+    "sanitize-html": "^2.13.0",
+    "simple-git": "^3.25.0",
+    "ts-pattern": "^5.2.0",
+    "uuid": "^10.0.0",
+    "validator": "^13.12.0",
+    "winston": "^3.13.1",
+    "zod": "^3.23.8"
   },
   "keywords": [
     "typescript",
@@ -78,6 +78,17 @@
     "llm-tools"
   ],
   "devDependencies": {
-    "@types/express": "^5.0.1"
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.15.3",
+    "@types/sanitize-html": "^2.15.0",
+    "@types/uuid": "^10.0.0",
+    "@types/validator": "13.15.0",
+    "nodemon": "^3.1.4",
+    "rimraf": "^6.0.1",
+    "tiktoken": "^1.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
   }
 }

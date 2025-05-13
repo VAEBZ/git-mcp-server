@@ -44,6 +44,7 @@ import { initializeGitTagStateAccessors, registerGitTagTool } from './tools/gitT
 import { initializeGitAddStateAccessors } from './tools/gitAdd/index.js'; // Import add accessor init
 import { initializeGitCommitStateAccessors } from './tools/gitCommit/index.js'; // Import commit accessor init
 import { initializeGitStatusStateAccessors } from './tools/gitStatus/index.js'; // Import status accessor init
+import morgan from 'morgan'; // <--- Add morgan import
 
 
 // --- Configuration Constants ---
@@ -123,7 +124,10 @@ function isOriginAllowed(req: Request, res: Response): boolean {
   // 1. The origin header is present AND is in the configured allowed list.
   // OR
   // 2. The server is bound to localhost AND the origin header is missing or 'null' (common for local file access or redirects).
-  const allowed = (origin && allowedOrigins.includes(origin)) || (isLocalhostBinding && (!origin || origin === 'null'));
+  // OR
+  // 3. There is no origin and it's not a localhost binding (likely an internal service call)
+  const isInternalServiceCall = !origin && !isLocalhostBinding;
+  const allowed = (origin && allowedOrigins.includes(origin)) || (isLocalhostBinding && (!origin || origin === 'null')) || isInternalServiceCall;
 
   if (allowed && origin) {
     // If allowed and an origin was provided, set CORS headers to allow the specific origin.
@@ -390,6 +394,7 @@ async function startTransport(): Promise<McpServer | void> {
   // --- HTTP Transport Setup ---
   if (TRANSPORT_TYPE === 'http') {
     const app = express();
+    app.use(morgan('dev')); // <--- Use morgan for request logging
     // Middleware to parse JSON request bodies.
     app.use(express.json());
 
@@ -471,7 +476,6 @@ async function startTransport(): Promise<McpServer | void> {
 
         } else if (!transport) {
           // --- Handle Non-Initialize Request without Valid Session ---
-          // If it's not an initialization request, but no transport was found for the session ID.
           logger.warning('Invalid session ID provided for non-initialize POST request', { ...context, sessionId });
           res.status(404).json({ jsonrpc: '2.0', error: { code: -32004, message: 'Invalid or expired session ID' }, id: requestId });
           return; // Stop processing.
@@ -487,6 +491,14 @@ async function startTransport(): Promise<McpServer | void> {
         // Delegate the actual handling of the request (parsing, routing to server, sending response)
         // to the transport instance. This works for both the initial initialize message and subsequent messages.
         await transport.handleRequest(req, res, req.body);
+
+        // If it was an init request via POST and the transport hasn't ended the response,
+        // (which can happen if it sent a JSON body but expects the stream to be kept for SSE, which is wrong for init POST)
+        // we explicitly end it here to prevent Express 404ing.
+        if (isInitReq && !res.writableEnded) {
+          logger.debug('Explicitly ending response for POST initialize request.', { ...context, sessionId });
+          res.end();
+        }
 
       } catch (err) {
         // Catch-all for errors during POST handling.
